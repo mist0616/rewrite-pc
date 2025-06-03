@@ -1,4 +1,4 @@
-import { Button, Card, Empty, Form, Input, Spin, Typography } from 'antd';
+import { Button, Card, Empty, Form, Input, Spin, Typography, message } from 'antd';
 import styles from './App.module.less';
 import { useState } from 'react';
 import Layout from './components/Layout';
@@ -6,31 +6,93 @@ import { ClearOutlined, LoadingOutlined, SettingOutlined } from '@ant-design/ico
 
 const { Text } = Typography;
 
-function App() {
-    const [form] = Form.useForm();
+const process = {
+    env: {
+        REACT_APP_DEEPSEEK_API_KEY: 'sk-5315771729b94896a4aa627fae9df25b',
+    },
+};
 
+// DeepSeek API 调用函数
+const rewriteWithDeepSeek = async (original: string, requirement: string = '') => {
+    const prompt = `请改写这篇文章。要求：保持原意但优化表达${
+        requirement ? `，同时满足以下要求：${requirement}` : ''
+    }。改写后的文章：`;
+
+    try {
+        const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${process.env.REACT_APP_DEEPSEEK_API_KEY}`,
+            },
+            body: JSON.stringify({
+                model: 'deepseek-chat',
+                messages: [
+                    { role: 'system', content: '你是一名专业的文章改写助手' },
+                    { role: 'user', content: `${prompt}\n\n原文：${original}` },
+                ],
+                temperature: 0.7,
+                max_tokens: 2000,
+            }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error?.message || 'API请求失败');
+        }
+
+        const data = await response.json();
+        return data.choices[0].message.content.trim();
+    } catch (error) {
+        console.error('DeepSeek API错误:', error);
+        throw error;
+    }
+};
+
+function App() {
+    const [form] = Form.useForm<{
+        original: string;
+        requirement: string;
+    }>();
     const originalValue = Form.useWatch('original', form);
 
-    const [newValue, setNewValue] = useState('');
-
+    const [rewrittenText, setRewrittenText] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const build = () => {
-        setNewValue('');
+    const build = async () => {
+        const values = await form.validateFields();
+
+        if (!values.original) {
+            message.warning('请输入原文内容');
+            return;
+        }
+
+        setRewrittenText('');
         setLoading(true);
-        setTimeout(() => {
-            setNewValue(originalValue);
+
+        try {
+            const _rewrittenText = await rewriteWithDeepSeek(values.original, values.requirement);
+            setRewrittenText(_rewrittenText);
+        } catch (error) {
+            message.error(`改写失败: ${error.message}`);
+            console.error('改写错误:', error);
+        } finally {
             setLoading(false);
-        }, 3000);
+        }
     };
 
     const post = () => {
         window.open('https://www.toutiao.com/');
     };
 
-    const showSettings = () => {};
+    const showSettings = () => {
+        // 设置逻辑
+    };
 
-    const clear = () => {};
+    const clear = () => {
+        form.resetFields();
+        setRewrittenText('');
+    };
 
     return (
         <Layout>
@@ -41,18 +103,23 @@ function App() {
                         indicator={<LoadingOutlined style={{ fontSize: 48 }} spin />}
                     >
                         <div className={styles.textBox}>
-                            <Input.TextArea value={newValue} placeholder='' rows={10} disabled />
-                            {!newValue && !loading ? (
+                            <Input.TextArea
+                                value={rewrittenText}
+                                placeholder=''
+                                rows={10}
+                                readOnly
+                            />
+                            {!rewrittenText && !loading && (
                                 <Empty
                                     className={styles.empty}
                                     description='生成的文章将展示在这里'
                                 />
-                            ) : null}
+                            )}
                         </div>
                     </Spin>
 
                     <div className={styles.settingBox}>
-                        <Text type='secondary'>{newValue.length || 0} 字</Text>
+                        <Text type='secondary'>{rewrittenText.length || 0} 字</Text>
                         <div className={styles.settingButtons}>
                             <Button onClick={showSettings}>
                                 <SettingOutlined />
@@ -67,22 +134,35 @@ function App() {
                             type='primary'
                             size='large'
                             block
-                            disabled={!originalValue}
+                            disabled={!originalValue?.trim()}
                             onClick={build}
                             loading={loading}
                         >
-                            {loading ? '生成中' : '生成文章'}
+                            {loading ? '生成中...' : '生成文章'}
                         </Button>
-                        <Button size='large' block disabled={!newValue} onClick={post}>
+                        <Button size='large' block disabled={!rewrittenText} onClick={post}>
                             发布头条
                         </Button>
                     </div>
                     <Form className={styles.form} layout={'vertical'} form={form}>
-                        <Form.Item label='原文' name='original'>
-                            <Input.TextArea placeholder='输入原文' rows={10} />
+                        <Form.Item
+                            label='原文'
+                            name='original'
+                            rules={[{ required: true, message: '请输入原文内容' }]}
+                        >
+                            <Input.TextArea
+                                placeholder='输入原文'
+                                rows={10}
+                                showCount
+                                maxLength={5000}
+                            />
                         </Form.Item>
-                        <Form.Item label='其他要求（可选）'>
-                            <Input.TextArea placeholder='输入要求' rows={4} />
+                        <Form.Item label='其他要求（可选）' name='requirement'>
+                            <Input.TextArea
+                                placeholder='例如：精简到300字以内、使用更正式的语气、增加技术术语等'
+                                rows={4}
+                                maxLength={500}
+                            />
                         </Form.Item>
                     </Form>
                 </div>
