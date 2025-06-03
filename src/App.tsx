@@ -1,6 +1,10 @@
-import { Button, Card, Form, Input, Spin } from 'antd';
+import { Button, Card, Empty, Form, Input, Spin, Typography } from 'antd';
 import styles from './App.module.less';
 import { useState } from 'react';
+import Layout from './components/Layout';
+import { ClearOutlined, LoadingOutlined, SettingOutlined } from '@ant-design/icons';
+
+const { Text } = Typography;
 
 function App() {
     const [form] = Form.useForm();
@@ -12,6 +16,7 @@ function App() {
     const [loading, setLoading] = useState(false);
 
     const build = () => {
+        setNewValue('');
         setLoading(true);
         setTimeout(() => {
             setNewValue(originalValue);
@@ -23,14 +28,41 @@ function App() {
         window.open('https://www.toutiao.com/');
     };
 
+    const showSettings = () => {};
+
+    const clear = () => {};
+
     return (
-        <div className={styles.app}>
+        <Layout>
             <Card>
                 <div className={styles.cardBody}>
-                    <Spin spinning={loading} tip='正在生成文章...'>
-                        <Input.TextArea value={newValue} placeholder='' rows={10} />
+                    <Spin
+                        spinning={loading}
+                        indicator={<LoadingOutlined style={{ fontSize: 48 }} spin />}
+                    >
+                        <div className={styles.textBox}>
+                            <Input.TextArea value={newValue} placeholder='' rows={10} disabled />
+                            {!newValue && !loading ? (
+                                <Empty
+                                    className={styles.empty}
+                                    description='生成的文章将展示在这里'
+                                />
+                            ) : null}
+                        </div>
                     </Spin>
-                    <div className={styles.buttons}>
+
+                    <div className={styles.settingBox}>
+                        <Text type='secondary'>{newValue.length || 0} 字</Text>
+                        <div className={styles.settingButtons}>
+                            <Button onClick={showSettings}>
+                                <SettingOutlined />
+                            </Button>
+                            <Button onClick={clear}>
+                                <ClearOutlined />
+                            </Button>
+                        </div>
+                    </div>
+                    <div className={styles.actionButtons}>
                         <Button
                             type='primary'
                             size='large'
@@ -39,7 +71,7 @@ function App() {
                             onClick={build}
                             loading={loading}
                         >
-                            生成文章
+                            {loading ? '生成中' : '生成文章'}
                         </Button>
                         <Button size='large' block disabled={!newValue} onClick={post}>
                             发布头条
@@ -55,7 +87,7 @@ function App() {
                     </Form>
                 </div>
             </Card>
-        </div>
+        </Layout>
     );
 }
 
