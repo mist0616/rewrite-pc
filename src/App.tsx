@@ -1,34 +1,60 @@
-import { Button, Card, Form, Input } from 'antd';
+import { Button, Card, Form, Input, Spin } from 'antd';
 import styles from './App.module.less';
+import { useState } from 'react';
 
 function App() {
     const [form] = Form.useForm();
 
+    const originalValue = Form.useWatch('original', form);
+
+    const [newValue, setNewValue] = useState('');
+
+    const [loading, setLoading] = useState(false);
+
+    const build = () => {
+        setLoading(true);
+        setTimeout(() => {
+            setNewValue(originalValue);
+            setLoading(false);
+        }, 3000);
+    };
+
+    const post = () => {
+        window.open('https://www.toutiao.com/');
+    };
+
     return (
         <div className={styles.app}>
-            <div className={styles.header}></div>
-            <div className={styles.content}>
-                <Card>
-                    <div className={styles.cardBody}>
-                        <Input.TextArea placeholder='' rows={5} maxLength={10} />
-                        <div className={styles.buttons}>
-                            <Button className={styles.button} type='primary'>
-                                生成文章
-                            </Button>
-                            <Button className={styles.button}>发布头条</Button>
-                        </div>
-                        <Form className={styles.form} layout={'vertical'} form={form}>
-                            <Form.Item label='原文'>
-                                <Input.TextArea placeholder='输入原文' rows={5} maxLength={10} />
-                            </Form.Item>
-                            <Form.Item label='其他要求（可选）'>
-                                <Input.TextArea placeholder='输入要求' rows={2} maxLength={2} />
-                            </Form.Item>
-                        </Form>
+            <Card>
+                <div className={styles.cardBody}>
+                    <Spin spinning={loading} tip='正在生成文章...'>
+                        <Input.TextArea value={newValue} placeholder='' rows={10} />
+                    </Spin>
+                    <div className={styles.buttons}>
+                        <Button
+                            type='primary'
+                            size='large'
+                            block
+                            disabled={!originalValue}
+                            onClick={build}
+                            loading={loading}
+                        >
+                            生成文章
+                        </Button>
+                        <Button size='large' block disabled={!newValue} onClick={post}>
+                            发布头条
+                        </Button>
                     </div>
-                </Card>
-            </div>
-            <div className={styles.footer}></div>
+                    <Form className={styles.form} layout={'vertical'} form={form}>
+                        <Form.Item label='原文' name='original'>
+                            <Input.TextArea placeholder='输入原文' rows={10} />
+                        </Form.Item>
+                        <Form.Item label='其他要求（可选）'>
+                            <Input.TextArea placeholder='输入要求' rows={4} />
+                        </Form.Item>
+                    </Form>
+                </div>
+            </Card>
         </div>
     );
 }
