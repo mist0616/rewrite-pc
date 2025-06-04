@@ -1,0 +1,68 @@
+.container {
+
+  .hotList {
+
+    .item {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .titleBox {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .rank {
+        text-wrap: nowrap;
+      }
+
+      .title {}
+    }
+
+    .views {
+      text-wrap: nowrap;
+    }
+  }
+
+  .editor {
+    .cardBody {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+
+      .textBox {
+        position: relative;
+      }
+
+      .empty {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+
+
+      .settingBox {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        .total {}
+
+        .settingButtons {
+          display: flex;
+          gap: 16px;
+        }
+      }
+
+      .actionButtons {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        gap: 16px;
+      }
+    }
+  }
+}

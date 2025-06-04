@@ -8,7 +8,7 @@ createRoot(document.getElementById('root')!).render(
     <StrictMode>
         <ConfigProvider
             theme={{
-                algorithm: theme.darkAlgorithm,
+                algorithm: theme.compactAlgorithm,
             }}
         >
             <App />
