@@ -6,11 +6,13 @@ export const currentUser = {
     avatar: 'https://www.koegen.ai/_next/image?url=https%3A%2F%2Fpbs.twimg.com%2Fprofile_images%2F1713124304190410752%2F8kKzDyhD_normal.jpg&w=64&q=75',
 };
 
-export const trendingTopics: {
+export interface TrendingTopicItem {
     rank: number;
     title: string;
     views: string;
-}[] = [
+}
+
+export const trendingTopics: TrendingTopicItem[] = [
     { rank: 1, title: '李在明推进将韩总统府迁回青瓦台', views: '1138.2万' },
     { rank: 2, title: '被毒蛇咬伤后如何自救', views: '1876.6万' },
     { rank: 3, title: '端午节假期国内出游1.19亿人次', views: '1698.0万' },

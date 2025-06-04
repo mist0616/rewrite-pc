@@ -1,4 +1,4 @@
-import type { FC } from 'react';
+import { type FC } from 'react';
 import styles from './index.module.less';
 import { Avatar, Button, Dropdown, message, Modal, Typography, type MenuProps } from 'antd';
 import { DollarOutlined, LogoutOutlined, DownOutlined } from '@ant-design/icons';
@@ -39,10 +39,7 @@ const AppHeader: FC = () => {
         <div className={styles.container}>
             {contextHolder}
             <div className={styles.titleBox}>
-                <Typography.Text className={styles.title}>爆上爆 AI 写作助手</Typography.Text>
-                <Typography.Text type='secondary' className={styles.desc}>
-                    专注于头条创作，助力每一个创作梦
-                </Typography.Text>
+                <Typography.Text className={styles.title}>二创狗</Typography.Text>
             </div>
             {currentUser ? (
                 <div className={styles.myInfo}>

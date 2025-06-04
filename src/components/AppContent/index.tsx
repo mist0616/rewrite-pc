@@ -15,7 +15,7 @@ import {
     Typography,
 } from 'antd';
 import { ClearOutlined, LoadingOutlined, SettingOutlined } from '@ant-design/icons';
-import { currentUser, trendingTopics } from '../../mock';
+import { currentUser, trendingTopics, type TrendingTopicItem } from '../../mock';
 import { rewriteWithDeepSeek } from '../../services';
 
 interface FormValues {
@@ -25,16 +25,14 @@ interface FormValues {
     requirement: string;
 }
 
-const initialValues: Partial<FormValues> = {
-    domain: 'ti_yu',
-    style: 'normal',
-};
+const initialValues: Partial<FormValues> = {};
 
 const AppContent: FC = () => {
     const [form] = Form.useForm<{
         original: string;
-        requirement: string;
         domain: string;
+        style: string;
+        requirement: string;
     }>();
     const originalValue = Form.useWatch('original', form);
     const [rewrittenText, setRewrittenText] = useState('');
@@ -54,8 +52,8 @@ const AppContent: FC = () => {
         setLoading(true);
 
         try {
-            const _rewrittenText = await rewriteWithDeepSeek(values.original, values.requirement);
-            setRewrittenText(_rewrittenText);
+            const { title, content } = await rewriteWithDeepSeek(values);
+            setRewrittenText([title, content].join('\n\n'));
         } catch (error) {
             message.error(`改写失败: ${error.message}`);
             console.error('改写错误:', error);
@@ -68,13 +66,13 @@ const AppContent: FC = () => {
         window.open('https://www.toutiao.com/');
     };
 
-    const showSettings = () => {
-        // 设置逻辑
-    };
-
     const clear = () => {
         form.resetFields();
         setRewrittenText('');
+    };
+
+    const gotoHot = (item: TrendingTopicItem) => {
+        window.open(`https://so.toutiao.com/search?keyword=${item.title}`);
     };
 
     const buildButtonText = (() => {
@@ -97,7 +95,12 @@ const AppContent: FC = () => {
                         <List
                             dataSource={trendingTopics}
                             renderItem={item => (
-                                <List.Item className={styles.item}>
+                                <List.Item
+                                    className={styles.item}
+                                    onClick={() => {
+                                        gotoHot(item);
+                                    }}
+                                >
                                     <div className={styles.titleBox}>
                                         <Typography.Text type='secondary' className={styles.rank}>
                                             {item.rank}
@@ -142,11 +145,8 @@ const AppContent: FC = () => {
                             <div className={styles.settingBox}>
                                 <div></div>
                                 <div className={styles.settingButtons}>
-                                    <Button onClick={showSettings}>
-                                        <SettingOutlined />
-                                    </Button>
-                                    <Button onClick={clear}>
-                                        <ClearOutlined />
+                                    <Button onClick={clear} icon={<ClearOutlined />}>
+                                        重置
                                     </Button>
                                 </div>
                             </div>
@@ -174,13 +174,16 @@ const AppContent: FC = () => {
                                 <Form.Item
                                     label='原文'
                                     name='original'
-                                    rules={[{ required: true, message: '请输入原文内容' }]}
+                                    rules={[
+                                        { required: true, message: '原文不能为空' },
+                                        { whitespace: true },
+                                    ]}
                                 >
                                     <Input.TextArea placeholder='输入原文' rows={10} showCount />
                                 </Form.Item>
                                 <Form.Item label='领域' name='domain'>
                                     <Select
-                                        placeholder='请选择领域'
+                                        placeholder='选择领域'
                                         options={[
                                             {
                                                 value: 'ti_yu',
@@ -195,7 +198,7 @@ const AppContent: FC = () => {
                                     extra='从大V用户中选择，参考他们独特的风格来改写文章。'
                                 >
                                     <Select
-                                        placeholder='请选择大V'
+                                        placeholder='选择大V'
                                         options={[
                                             {
                                                 value: 'mi_meng',
